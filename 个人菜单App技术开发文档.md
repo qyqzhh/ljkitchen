@@ -313,4 +313,187 @@ db.version(1).stores({
 - [x] 冰箱食材纯文本，无图片
 - [x] 导出 zip（data.json + images/），导入后完全一致，导入前自动备份
 - [x] 分类多选，必选至少一个
+- [x] 分类多选，必选至少一个
 - [x] 管理页与"我的"页合并
+- [x] 菜品和分类无限额，可自由添加
+- [x] PWA 使用手动实现（manifest + sw.js），不依赖 vite-plugin-pwa
+
+---
+
+## 12. 部署指南
+
+### 12.1 iOS 部署（PWA 方式）
+
+iOS 端通过 Safari "添加到主屏幕" 使用，无需开发者账号，有以下两种部署方式：
+
+#### 方式一：Netlify 免费静态托管（推荐）
+
+1. 将代码推送到 GitHub 仓库
+2. 注册 Netlify 账号（https://netlify.com，用 GitHub 登录）
+3. 导入 GitHub 仓库，配置：
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+4. 点击 Deploy，等待 1-2 分钟
+5. 获得 `xxx.netlify.app` 的 HTTPS 网址
+6. iPhone 用 Safari 打开网址 → 分享按钮 → "添加到主屏幕"
+
+**优点**：随时可用，电脑不用开，完整 PWA 离线支持
+
+#### 方式二：局域网开发服务器
+
+1. 电脑和手机连同一个 Wi-Fi
+2. 执行 `npm run dev` 启动开发服务器
+3. 手机 Safari 访问局域网地址（如 `http://192.168.1.3:5173/`）
+4. 分享按钮 → "添加到主屏幕"
+
+**缺点**：电脑必须一直开着，只能在同一个 WiFi 下使用
+
+---
+
+### 12.2 Android 部署（APK 方式）
+
+Android 端通过 Capacitor 打包成 APK 安装包，直接安装到手机。
+
+#### 环境准备
+
+**必需工具**：
+| 工具 | 版本要求 | 说明 |
+|---|---|---|
+| JDK | 8+ | 您已有：E:\study\jdk8 |
+| Node.js | 16+ | 您已有：E:\tools\nodejs |
+| Android SDK | API 22+ | 需要安装（见下方） |
+
+#### 第 1 步：安装 Android Studio（推荐）
+
+Android Studio 自带 Android SDK 和 Gradle，是最简单的方式：
+
+1. 下载 Android Studio：https://developer.android.com/studio
+2. 运行安装程序，默认安装即可
+3. 首次启动会自动下载 Android SDK，等待完成
+4. 记录 SDK 安装路径（一般是 `C:\Users\你的用户名\AppData\Local\Android\Sdk`）
+
+#### 第 2 步：配置环境变量
+
+Windows 系统需要配置以下环境变量：
+
+1. **ANDROID_HOME**：指向 Android SDK 路径
+   - 例如：`C:\Users\Admin\AppData\Local\Android\Sdk`
+
+2. **PATH 中添加**：
+   - `%ANDROID_HOME%\platform-tools`
+   - `%ANDROID_HOME%\cmdline-tools\latest\bin`
+   - `E:\study\jdk8\bin`（如果 Java 不在 PATH 中）
+
+**配置方法**：
+- 右键"此电脑" → 属性 → 高级系统设置 → 环境变量
+- 在"系统变量"里新建 `ANDROID_HOME`
+- 编辑 `Path`，添加上面的路径
+
+#### 第 3 步：安装必要的 SDK 组件
+
+打开 Android Studio → Tools → SDK Manager → SDK Tools，确保勾选：
+- Android SDK Build-Tools
+- Android SDK Platform-Tools
+- Android SDK Command-line Tools (latest)
+
+然后在 SDK Platforms 中选一个最新的 SDK Platform 安装（如 Android 14.0）。
+
+#### 第 4 步：验证环境
+
+在项目目录下打开 PowerShell，执行：
+```powershell
+.\check-env.ps1
+```
+如果全部显示 OK，说明环境准备好了。
+
+#### 第 5 步：构建 APK
+
+在项目目录下执行：
+
+**Debug 版**（直接安装调试用）：
+```powershell
+.\build-apk.ps1
+```
+
+**Release 版**（正式发布用，需要签名）：
+```powershell
+.\build-apk.ps1 release
+```
+
+构建成功后，APK 位置：
+- Debug：`android\app\build\outputs\apk\debug\app-debug.apk`
+- Release：`android\app\build\outputs\apk\release\app-release.apk`
+
+#### 第 6 步：安装到手机
+
+**方法一：数据线安装**
+1. 手机开启"开发者选项"和"USB 调试"
+   - 设置 → 关于手机 → 连续点"版本号" 7 次，开启开发者模式
+   - 设置 → 开发者选项 → 开启 USB 调试
+2. 数据线连接电脑和手机
+3. 手机上选择"文件传输"模式，允许 USB 调试
+4. 直接双击 APK 文件安装，或执行：
+   ```
+   adb install app-debug.apk
+   ```
+
+**方法二：无线传输**
+- 把 APK 文件传到手机（微信、QQ、网盘等）
+- 在手机文件管理器中找到 APK，点击安装
+- 需要开启"允许安装未知来源应用"
+
+---
+
+### 12.3 日常开发命令
+
+```bash
+# 启动开发服务器
+npm run dev
+
+# 构建生产版本
+npm run build
+
+# 同步前端代码到 Android 项目
+npm run cap:sync
+
+# 一键打包 APK（Debug）
+.\build-apk.ps1
+
+# 一键打包 APK（Release）
+.\build-apk.ps1 release
+
+# 检查 Android 构建环境
+.\check-env.ps1
+```
+
+---
+
+### 12.4 项目结构
+
+```
+LJKitchen/
+├── 个人菜单App技术开发文档.md    # 开发文档
+├── capacitor.config.json         # Capacitor 配置
+├── package.json
+├── vite.config.js
+├── index.html
+├── build-apk.ps1                 # APK 一键打包脚本
+├── check-env.ps1                 # 环境检查脚本
+├── public/
+│   ├── manifest.webmanifest      # PWA manifest
+│   └── sw.js                     # Service Worker
+├── src/
+│   ├── main.js
+│   ├── App.vue
+│   ├── router/index.js
+│   ├── db/index.js               # Dexie.js 数据库
+│   ├── stores/                   # Pinia 状态管理
+│   ├── utils/                    # 工具函数
+│   ├── views/                    # 页面组件
+│   └── components/               # 通用组件
+└── android/                      # Android 原生项目（Capacitor 生成）
+    ├── app/
+    ├── gradle/
+    ├── build.gradle
+    └── gradlew.bat
+```

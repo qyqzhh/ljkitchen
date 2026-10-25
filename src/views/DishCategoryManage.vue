@@ -153,9 +153,11 @@ function startEdit(category) {
   editingId.value = category.id
   editName.value = category.name
   nextTick(() => {
-    if (editInput.value) {
-      editInput.value.focus()
-      editInput.value.select()
+    // v-for 中的 ref 会收集成数组，需取第一个元素再聚焦
+    const input = Array.isArray(editInput.value) ? editInput.value[0] : editInput.value
+    if (input && typeof input.focus === 'function') {
+      input.focus()
+      input.select()
     }
   })
 }

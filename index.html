@@ -6,9 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#8b7ab8" />
     <title>LJKitchen 个人厨房</title>
-  </head>
+    <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#8b7ab8">
+</head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
-  </body>
+    <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
+  </script>
+</body>
 </html>

@@ -121,6 +121,24 @@ export async function importData(file) {
     createdAt: Date.now()
   })
 
+  const dishesToImport = data.dishes ? data.dishes.map(d => ({ ...d })) : []
+
+  // 图片解压/转 Base64 必须在事务外完成：Dexie 事务无法跟踪 JSZip / FileReader 的异步，
+  // 在事务内 await 这类操作会导致事务被提前提交（PrematureCommitError）。
+  for (const dish of dishesToImport) {
+    if (dish.imagePath) {
+      const imageFile = zip.file(dish.imagePath)
+      if (imageFile) {
+        const imageBytes = await imageFile.async('uint8array')
+        // JSZip 解出的 Blob 不带 MIME，需按扩展名补上，否则 data URL 会变成 application/octet-stream
+        const ext = dish.imagePath.split('.').pop().toLowerCase()
+        const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : `image/${ext}`
+        dish.imageData = await blobToBase64(new Blob([imageBytes], { type: mime }))
+      }
+      delete dish.imagePath
+    }
+  }
+
   await db.transaction(
     'rw',
     db.dishCategory,
@@ -139,20 +157,6 @@ export async function importData(file) {
 
       if (data.ingredientCategories && data.ingredientCategories.length > 0) {
         await db.ingredientCategory.bulkAdd(data.ingredientCategories)
-      }
-
-      const dishesToImport = data.dishes ? data.dishes.map(d => ({ ...d })) : []
-
-      for (const dish of dishesToImport) {
-        if (dish.imagePath) {
-          const imageFile = zip.file(dish.imagePath)
-          if (imageFile) {
-            const imageBlob = await imageFile.async('blob')
-            const base64 = await blobToBase64(imageBlob)
-            dish.imageData = base64
-          }
-          delete dish.imagePath
-        }
       }
 
       if (dishesToImport.length > 0) {

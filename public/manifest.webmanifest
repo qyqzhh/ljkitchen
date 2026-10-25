@@ -1,0 +1,21 @@
+{
+  "name": "LJKitchen 个人厨房",
+  "short_name": "LJKitchen",
+  "description": "个人菜单管理、冰箱食材管理",
+  "theme_color": "#8b7ab8",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

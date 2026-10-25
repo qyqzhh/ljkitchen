@@ -1,7 +1,19 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, toRaw } from 'vue'
 import db from '../db'
 import { generateUUID } from '../utils/uuid'
+
+// IndexedDB 无法存储 Vue 的响应式 Proxy 对象，写入前必须转成普通对象/数组
+function toPlainDish(data) {
+  const raw = toRaw(data)
+  return {
+    name: raw.name,
+    rating: raw.rating || 0,
+    review: raw.review || '',
+    imageData: raw.imageData || null,
+    categoryIds: Array.isArray(raw.categoryIds) ? raw.categoryIds.map(id => String(id)) : []
+  }
+}
 
 const DEFAULT_CATEGORIES = [
   { name: '荤菜', sort: 1 },
@@ -156,13 +168,10 @@ export const useDishStore = defineStore('dish', () => {
   }
 
   async function addDish(dishData) {
+    const plain = toPlainDish(dishData)
     const dish = {
       id: generateUUID(),
-      name: dishData.name,
-      rating: dishData.rating || 0,
-      review: dishData.review || '',
-      imageData: dishData.imageData || null,
-      categoryIds: dishData.categoryIds || [],
+      ...plain,
       createdAt: new Date().toISOString()
     }
     await db.dish.add(dish)
@@ -171,7 +180,7 @@ export const useDishStore = defineStore('dish', () => {
   }
 
   async function updateDish(id, updates) {
-    await db.dish.update(id, updates)
+    await db.dish.update(id, toPlainDish(updates))
     await loadDishes()
   }
 
