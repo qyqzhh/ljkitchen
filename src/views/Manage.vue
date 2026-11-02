@@ -67,6 +67,17 @@
       </div>
 
       <div class="menu-section">
+        <div class="menu-item" @click="goToToolbox">
+          <div class="menu-icon">🧰</div>
+          <div class="menu-content">
+            <div class="menu-title">百宝箱</div>
+            <div class="menu-desc">实用小工具</div>
+          </div>
+          <div class="menu-arrow">›</div>
+        </div>
+      </div>
+
+      <div class="menu-section">
         <div class="menu-item" @click="handleExport">
           <div class="menu-icon">📤</div>
           <div class="menu-content">
@@ -125,6 +136,10 @@ function goToDishManage() {
 
 function goToCategoryManage() {
   router.push('/manage/categories')
+}
+
+function goToToolbox() {
+  router.push('/toolbox')
 }
 
 async function handleExport() {

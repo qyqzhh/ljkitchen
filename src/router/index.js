@@ -57,6 +57,18 @@ const routes = [
     name: 'DishCategoryManage',
     component: () => import('../views/DishCategoryManage.vue'),
     meta: { title: '菜品分类管理' }
+  },
+  {
+    path: '/toolbox',
+    name: 'Toolbox',
+    component: () => import('../views/Toolbox.vue'),
+    meta: { title: '百宝箱' }
+  },
+  {
+    path: '/toolbox/commute-cost',
+    name: 'CommuteCost',
+    component: () => import('../views/CommuteCost.vue'),
+    meta: { title: '通勤费用计算' }
   }
 ]
 
