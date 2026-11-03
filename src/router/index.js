@@ -69,6 +69,12 @@ const routes = [
     name: 'CommuteCost',
     component: () => import('../views/CommuteCost.vue'),
     meta: { title: '通勤费用计算' }
+  },
+  {
+    path: '/import-log',
+    name: 'ImportLog',
+    component: () => import('../views/ImportLog.vue'),
+    meta: { title: '导入日志' }
   }
 ]
 

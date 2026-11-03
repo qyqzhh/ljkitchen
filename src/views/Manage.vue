@@ -102,6 +102,14 @@
           </div>
           <div class="menu-arrow">›</div>
         </div>
+        <div class="menu-item" @click="goToImportLog">
+          <div class="menu-icon">📋</div>
+          <div class="menu-content">
+            <div class="menu-title">导入日志</div>
+            <div class="menu-desc">排查导入闪退问题</div>
+          </div>
+          <div class="menu-arrow">›</div>
+        </div>
       </div>
     </div>
 
@@ -112,6 +120,13 @@
       class="file-input"
       @change="onFileSelected"
     />
+
+    <div v-if="busyText" class="busy-overlay">
+      <div class="busy-box">
+        <div class="busy-spinner"></div>
+        <div class="busy-text">{{ busyText }}</div>
+      </div>
+    </div>
 
     <TabBar />
   </div>
@@ -129,6 +144,7 @@ const router = useRouter()
 const appStore = useAppStore()
 const dishStore = useDishStore()
 const fileInput = ref(null)
+const busyText = ref('')
 
 function goToDishManage() {
   router.push('/manage/dishes')
@@ -140,6 +156,10 @@ function goToCategoryManage() {
 
 function goToToolbox() {
   router.push('/toolbox')
+}
+
+function goToImportLog() {
+  router.push('/import-log')
 }
 
 async function handleExport() {
@@ -159,11 +179,20 @@ function handleImport() {
 async function onFileSelected(event) {
   const file = event.target.files?.[0]
   if (file) {
+    busyText.value = '正在读取备份文件...'
     try {
-      await importData(file)
+      await importData(file, (done, total, stage) => {
+        if (stage) {
+          busyText.value = stage
+        } else if (total > 0) {
+          busyText.value = `正在导入菜品 ${done}/${total}...`
+        }
+      })
+      busyText.value = ''
       alert('导入成功')
       window.location.reload()
     } catch (err) {
+      busyText.value = ''
       console.error(err)
       alert('导入失败：' + err.message)
     }
@@ -177,11 +206,14 @@ async function handleRestore() {
   if (!confirm('确定要恢复上次备份吗？当前数据将被覆盖。')) {
     return
   }
+  busyText.value = '正在恢复备份...'
   try {
     await restoreFromBackup()
+    busyText.value = ''
     alert('恢复成功')
     window.location.reload()
   } catch (err) {
+    busyText.value = ''
     console.error(err)
     alert('恢复失败：' + err.message)
   }
@@ -381,5 +413,46 @@ onMounted(async () => {
 
 .file-input {
   display: none;
+}
+
+.busy-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.busy-box {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+}
+
+.busy-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e8e2f2;
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: busy-spin 0.8s linear infinite;
+}
+
+@keyframes busy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.busy-text {
+  font-size: 14px;
+  color: var(--text-color);
 }
 </style>

@@ -146,6 +146,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDishStore } from '../stores/dish'
+import { compressImageFile } from '../utils/image'
 
 const route = useRoute()
 const router = useRouter()
@@ -201,15 +202,19 @@ function triggerImageInput() {
   imageInput.value?.click()
 }
 
-function handleImageChange(event) {
+async function handleImageChange(event) {
   const file = event.target.files?.[0]
   if (!file) return
 
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    formData.value.imageData = e.target.result
+  // 压缩后再存：手机原图 3-8MB 直接存 base64 会撑爆 IndexedDB 和导入导出流程
+  try {
+    formData.value.imageData = await compressImageFile(file)
+  } catch (e) {
+    alert('图片处理失败，请更换图片重试')
   }
-  reader.readAsDataURL(file)
+  if (imageInput.value) {
+    imageInput.value.value = ''
+  }
 }
 
 function removeImage() {
