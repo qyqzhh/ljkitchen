@@ -47,6 +47,7 @@
         </div>
       </div>
 
+      <div class="section-title">🧑‍🍳 厨房管理</div>
       <div class="menu-section">
         <div class="menu-item" @click="goToDishManage">
           <div class="menu-icon">🍽️</div>
@@ -64,20 +65,6 @@
           </div>
           <div class="menu-arrow">›</div>
         </div>
-      </div>
-
-      <div class="menu-section">
-        <div class="menu-item" @click="goToToolbox">
-          <div class="menu-icon">🧰</div>
-          <div class="menu-content">
-            <div class="menu-title">百宝箱</div>
-            <div class="menu-desc">实用小工具</div>
-          </div>
-          <div class="menu-arrow">›</div>
-        </div>
-      </div>
-
-      <div class="menu-section">
         <div class="menu-item" @click="handleExport">
           <div class="menu-icon">📤</div>
           <div class="menu-content">
@@ -107,6 +94,17 @@
           <div class="menu-content">
             <div class="menu-title">导入日志</div>
             <div class="menu-desc">排查导入闪退问题</div>
+          </div>
+          <div class="menu-arrow">›</div>
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-item" @click="goToToolbox">
+          <div class="menu-icon">🧰</div>
+          <div class="menu-content">
+            <div class="menu-title">百宝箱</div>
+            <div class="menu-desc">实用小工具</div>
           </div>
           <div class="menu-arrow">›</div>
         </div>
@@ -357,6 +355,14 @@ onMounted(async () => {
   width: 1px;
   height: 40px;
   background-color: var(--border-color);
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 18px 4px 8px;
+  letter-spacing: 0.5px;
 }
 
 .menu-section {
