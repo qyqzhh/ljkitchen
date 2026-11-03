@@ -47,7 +47,7 @@
       >
         <div class="dish-content" @click="goToEdit(dish.id)">
           <div class="dish-thumb">
-            <img v-if="dish.imageData" :src="dish.imageData" alt="菜品图片" class="thumb-image" />
+            <img v-if="dishStore.imageCache[dish.id]" :src="dishStore.imageCache[dish.id]" alt="菜品图片" class="thumb-image" />
             <div v-else class="thumb-placeholder">
               <span class="thumb-icon">🍽️</span>
             </div>
@@ -164,6 +164,7 @@ function goBack() {
 onMounted(async () => {
   await dishStore.loadCategories()
   await dishStore.loadDishes()
+  dishStore.dishes.filter(d => d.hasImage).forEach(d => dishStore.loadImageFor(d.id))
 })
 </script>
 

@@ -47,53 +47,12 @@
         </div>
       </div>
 
-      <div class="section-title">🧑‍🍳 厨房管理</div>
       <div class="menu-section">
-        <div class="menu-item" @click="goToDishManage">
-          <div class="menu-icon">🍽️</div>
+        <div class="menu-item" @click="goToKitchenManage">
+          <div class="menu-icon">🧑‍🍳</div>
           <div class="menu-content">
-            <div class="menu-title">菜品管理</div>
-            <div class="menu-desc">管理所有菜品</div>
-          </div>
-          <div class="menu-arrow">›</div>
-        </div>
-        <div class="menu-item" @click="goToCategoryManage">
-          <div class="menu-icon">📂</div>
-          <div class="menu-content">
-            <div class="menu-title">菜品分类管理</div>
-            <div class="menu-desc">管理菜品分类</div>
-          </div>
-          <div class="menu-arrow">›</div>
-        </div>
-        <div class="menu-item" @click="handleExport">
-          <div class="menu-icon">📤</div>
-          <div class="menu-content">
-            <div class="menu-title">导出全部数据</div>
-            <div class="menu-desc">导出为 zip 文件</div>
-          </div>
-          <div class="menu-arrow">›</div>
-        </div>
-        <div class="menu-item" @click="handleImport">
-          <div class="menu-icon">📥</div>
-          <div class="menu-content">
-            <div class="menu-title">导入数据</div>
-            <div class="menu-desc">从 zip 文件导入</div>
-          </div>
-          <div class="menu-arrow">›</div>
-        </div>
-        <div class="menu-item" @click="handleRestore">
-          <div class="menu-icon">↩️</div>
-          <div class="menu-content">
-            <div class="menu-title">恢复上次备份</div>
-            <div class="menu-desc">从本地备份恢复</div>
-          </div>
-          <div class="menu-arrow">›</div>
-        </div>
-        <div class="menu-item" @click="goToImportLog">
-          <div class="menu-icon">📋</div>
-          <div class="menu-content">
-            <div class="menu-title">导入日志</div>
-            <div class="menu-desc">排查导入闪退问题</div>
+            <div class="menu-title">厨房管理</div>
+            <div class="menu-desc">菜品、分类与数据管理</div>
           </div>
           <div class="menu-arrow">›</div>
         </div>
@@ -111,110 +70,27 @@
       </div>
     </div>
 
-    <input
-      ref="fileInput"
-      type="file"
-      accept=".zip"
-      class="file-input"
-      @change="onFileSelected"
-    />
-
-    <div v-if="busyText" class="busy-overlay">
-      <div class="busy-box">
-        <div class="busy-spinner"></div>
-        <div class="busy-text">{{ busyText }}</div>
-      </div>
-    </div>
-
     <TabBar />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import TabBar from '../components/TabBar.vue'
 import { useAppStore } from '../stores/app'
 import { useDishStore } from '../stores/dish'
-import { exportData, importData, restoreFromBackup } from '../utils/backup'
 
 const router = useRouter()
 const appStore = useAppStore()
 const dishStore = useDishStore()
-const fileInput = ref(null)
-const busyText = ref('')
 
-function goToDishManage() {
-  router.push('/manage/dishes')
-}
-
-function goToCategoryManage() {
-  router.push('/manage/categories')
+function goToKitchenManage() {
+  router.push('/kitchen-manage')
 }
 
 function goToToolbox() {
   router.push('/toolbox')
-}
-
-function goToImportLog() {
-  router.push('/import-log')
-}
-
-async function handleExport() {
-  try {
-    await exportData()
-    alert('导出成功')
-  } catch (err) {
-    console.error(err)
-    alert('导出失败：' + err.message)
-  }
-}
-
-function handleImport() {
-  fileInput.value?.click()
-}
-
-async function onFileSelected(event) {
-  const file = event.target.files?.[0]
-  if (file) {
-    busyText.value = '正在读取备份文件...'
-    try {
-      await importData(file, (done, total, stage) => {
-        if (stage) {
-          busyText.value = stage
-        } else if (total > 0) {
-          busyText.value = `正在导入菜品 ${done}/${total}...`
-        }
-      })
-      busyText.value = ''
-      alert('导入成功')
-      window.location.reload()
-    } catch (err) {
-      busyText.value = ''
-      console.error(err)
-      alert('导入失败：' + err.message)
-    }
-  }
-  if (fileInput.value) {
-    fileInput.value.value = ''
-  }
-}
-
-async function handleRestore() {
-  if (!confirm('确定要恢复上次备份吗？当前数据将被覆盖。')) {
-    return
-  }
-  busyText.value = '正在恢复备份...'
-  try {
-    await restoreFromBackup()
-    busyText.value = ''
-    alert('恢复成功')
-    window.location.reload()
-  } catch (err) {
-    busyText.value = ''
-    console.error(err)
-    alert('恢复失败：' + err.message)
-  }
 }
 
 onMounted(async () => {
@@ -357,14 +233,6 @@ onMounted(async () => {
   background-color: var(--border-color);
 }
 
-.section-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin: 18px 4px 8px;
-  letter-spacing: 0.5px;
-}
-
 .menu-section {
   background-color: #fff;
   border-radius: 12px;
@@ -415,50 +283,5 @@ onMounted(async () => {
   font-size: 20px;
   color: var(--text-light);
   margin-left: 8px;
-}
-
-.file-input {
-  display: none;
-}
-
-.busy-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-
-.busy-box {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 24px 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
-}
-
-.busy-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #e8e2f2;
-  border-top-color: var(--primary-color);
-  border-radius: 50%;
-  animation: busy-spin 0.8s linear infinite;
-}
-
-@keyframes busy-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.busy-text {
-  font-size: 14px;
-  color: var(--text-color);
 }
 </style>

@@ -71,6 +71,12 @@ const routes = [
     meta: { title: '通勤费用计算' }
   },
   {
+    path: '/kitchen-manage',
+    name: 'KitchenManage',
+    component: () => import('../views/KitchenManage.vue'),
+    meta: { title: '厨房管理' }
+  },
+  {
     path: '/import-log',
     name: 'ImportLog',
     component: () => import('../views/ImportLog.vue'),

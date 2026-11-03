@@ -26,6 +26,9 @@ const DEFAULT_CATEGORIES = [
 export const useDishStore = defineStore('dish', () => {
   const categories = ref([])
   const dishes = ref([])
+  // 图片按需缓存：列表数据不含 imageData（可能几百 KB 的 Base64），
+  // 展示时通过 loadImageFor 单独加载，避免全量图片常驻内存导致安卓端被系统回收
+  const imageCache = ref({})
   const currentCategoryId = ref(null)
   const searchKeyword = ref('')
   const isInitialized = ref(false)
@@ -117,24 +120,40 @@ export const useDishStore = defineStore('dish', () => {
 
   async function loadDishes() {
     await initialize()
-    let query = db.dish.orderBy('createdAt').reverse()
-    let result
-
+    const rows = []
+    // 游标逐条挑字段加载：imageData 不进 store，只记录 hasImage 标记。
+    // 内存常驻仅瘦身后的列表元数据，单条大图数据用完即弃。
+    const pick = d => rows.push({
+      id: d.id,
+      name: d.name,
+      rating: d.rating,
+      review: d.review,
+      categoryIds: d.categoryIds,
+      createdAt: d.createdAt,
+      hasImage: !!d.imageData
+    })
     if (currentCategoryId.value) {
-      result = await db.dish.where('categoryIds').equals(currentCategoryId.value).reverse().sortBy('createdAt')
-      result = result.reverse()
+      await db.dish.where('categoryIds').equals(currentCategoryId.value).each(pick)
+      rows.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
     } else {
-      result = await query.toArray()
+      await db.dish.orderBy('createdAt').reverse().each(pick)
     }
 
     if (searchKeyword.value) {
       const keyword = searchKeyword.value.toLowerCase()
-      dishes.value = result.filter(d =>
+      dishes.value = rows.filter(d =>
         d.name.toLowerCase().includes(keyword)
       )
     } else {
-      dishes.value = result
+      dishes.value = rows
     }
+  }
+
+  async function loadImageFor(dishId) {
+    if (imageCache.value[dishId] !== undefined) return
+    const dish = await db.dish.get(dishId)
+    if (!dish) return
+    imageCache.value[dishId] = dish.imageData || null
   }
 
   async function addCategory(name) {
@@ -216,6 +235,7 @@ export const useDishStore = defineStore('dish', () => {
   return {
     categories,
     dishes,
+    imageCache,
     currentCategoryId,
     searchKeyword,
     isInitialized,
@@ -223,6 +243,7 @@ export const useDishStore = defineStore('dish', () => {
     initialize,
     loadCategories,
     loadDishes,
+    loadImageFor,
     addCategory,
     updateCategory,
     deleteCategory,
